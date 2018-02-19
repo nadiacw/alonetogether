@@ -88,11 +88,11 @@ void loop()
 
     if (value == '0') {
       digitalWrite(LED_BUILTIN, HIGH);
-      pixels.setBrightness(255);
+      //pixels.setBrightness(255);
     }
     if (value == '1') {
       digitalWrite(LED_BUILTIN, LOW);
-      pixels.setBrightness(20);
+      //pixels.setBrightness(20);
     }
 
   }
