@@ -67,18 +67,17 @@ void loop()
 
 
   /**************** SEND Bluetooth messages ***************/
-  if (BT.available()) {
-
-    bytesToSend[0] = map(angle, 0, 90, 0, 255);
-    bytesToSend[1] = 0;
-
-    for (int i = 0; i < 2 ; i++) { // loops through the Bytes Array
-      BT.write(bytesToSend[i]); // When using Serial Write you are sending the Info as a Byte which is needed to send info to OF
-      // This means this info won't appear in your arduino serial viewer
-    }
-    delay(100);
-
-  }
+//  if (BT.available()) {
+//
+//    bytesToSend[0] = map(angle, 0, 90, 0, 255);
+//    bytesToSend[1] = 0;
+//
+//    for (int i = 0; i < 2 ; i++) { // loops through the Bytes Array
+//      BT.write(bytesToSend[i]); // When using Serial Write you are sending the Info as a Byte which is needed to send info to OF
+//      // This means this info won't appear in your arduino serial viewer
+//    }
+//
+//  }
   /**************** READ Bluetooth messages ***************/
   if (BT.available()) {
 
