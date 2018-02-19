@@ -26,7 +26,9 @@ class ofApp : public ofBaseApp{
     
     //SERIAL PART
     // Declare a Serial Object that you will refer to 
+//    vector<ofSerial> serialList;
     ofSerial mySerial;
+    ofSerial serialList[2];
     
     //set this array's length to the number of msg
     //bytes we are expecting to receive
