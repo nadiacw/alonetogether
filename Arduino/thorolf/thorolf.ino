@@ -1,24 +1,10 @@
 #include <SoftwareSerial.h>
 
-#include <Adafruit_NeoPixel.h>
-
-#include <avr/power.h>
-
-//#define PIN            3
-#define NUMPIXELS      6
+#include "FastLED.h"
+#define NUM_LEDS_PER_STRIP 6
+CRGB leds[NUM_LEDS_PER_STRIP];
 
 int nstrips = 6;
-int pixelPins[] = {0, 1, 2, 3, 4, 5};
-
-/********* LED settings *********/
-//Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel pixel0 = Adafruit_NeoPixel(NUMPIXELS, pixelPins[0], NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel pixel1 = Adafruit_NeoPixel(NUMPIXELS, pixelPins[1], NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel pixel2 = Adafruit_NeoPixel(NUMPIXELS, pixelPins[2], NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel pixel3 = Adafruit_NeoPixel(NUMPIXELS, pixelPins[3], NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel pixel4 = Adafruit_NeoPixel(NUMPIXELS, pixelPins[4], NEO_GRB + NEO_KHZ800);
-Adafruit_NeoPixel pixel5 = Adafruit_NeoPixel(NUMPIXELS, pixelPins[5], NEO_GRB + NEO_KHZ800);
-int delayval = 3000; // delay for half a second
 
 /********* Bluetooth settings *********/
 SoftwareSerial BT(10, 11); // Bluetooth 10 RX, 11 TX.
@@ -34,11 +20,19 @@ const float VCC = 4.98; // Measured voltage of Ardunio 5V line
 const float R_DIV = 47500.0; // Measured resistance of 3.3k resistor
 // Upload the code, then try to adjust these values to more
 // accurately calculate bend degree.
-const float STRAIGHT_RESISTANCE = 10348.21; // resistance when straight
-const float BEND_RESISTANCE = 20461.54; // resistance at 90 deg
+const float STRAIGHT_RESISTANCE[] = {10348.21, 42988.83, 10348.21}; // resistance when straight
+const float BEND_RESISTANCE[] = {20461.54, 125427.05, 20461.54}; // resistance at 90 deg
 
 void setup()
 {
+  /********* LED settings *********/
+  FastLED.addLeds<NEOPIXEL, 2>(leds, NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, 3>(leds, NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, 4>(leds, NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, 5>(leds, NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, 6>(leds, NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, 7>(leds, NUM_LEDS_PER_STRIP);
+
   Serial.begin(9600);
   BT.begin(9600);
 
@@ -46,53 +40,63 @@ void setup()
     pinMode(flexPins[i], INPUT);
   }
   pinMode(LED_BUILTIN, OUTPUT);
-  pixel0.begin();
-  pixel1.begin();
-  pixel2.begin();
-  pixel3.begin();
-  pixel4.begin();
-  pixel5.begin();
 }
 
 void loop()
 {
   /********* Flexie loop *********/
-  
+
   // For each flexie
-  int led_angle;
+  int led_angle[nflex];
   for (int i = 0; i < nflex; i++) {
+
+    Serial.println("FLEXIE #" + String(i));
 
     // Read the ADC, and calculate voltage and resistance from it
     int flexADC = analogRead(flexPins[i]);
     float flexV = flexADC * VCC / 1023.0;
     float flexR = R_DIV * (VCC / flexV - 1.0);
-    //Serial.println("Resistance: " + String(flexR) + " ohms");
+    //Serial.println("Resistance for flexie #: "+ String(i) + ": " + String(flexR) + " ohms");
 
     // Use the calculated resistance to estimate the sensor's
     // bend angle:
-    float angle = map(flexR, STRAIGHT_RESISTANCE, BEND_RESISTANCE,
-                      0, 90.0);
-    //Serial.println("Bend: " + String(angle) + " degrees");
-    //Serial.println();
+    float angle = map(flexR, STRAIGHT_RESISTANCE[i], BEND_RESISTANCE[i], 0, 90.0);
+    Serial.println("Bend for flexie #" + String(i) + ": " + String(angle) + " degrees");
 
-    led_angle = map(angle, 0, 90.0, 0, NUMPIXELS);
+    led_angle[i] = map(angle, 0, 90.0, 0, NUM_LEDS_PER_STRIP);
+    Serial.println(led_angle[i]);
   }
+
   /********* LED loop *********/
-  for (int i = 0; i < led_angle; i++) {
-    pixels.setPixelColor(i, pixels.Color(225, 225, 10 + (i + 1) * 10));
 
+  if (led_angle[0] > 1 || led_angle[1] > 1 || led_angle[2] > 1) {
+    //if (led_angle[1] > 1) {
+    for (int i = 0; i < led_angle; i++) {
+      leds[i] = CRGB::Green;
+    }
+    for (int i = led_angle; i < NUM_LEDS_PER_STRIP; i++) {
+      leds[i] = CRGB::Black;
+    }
+    FastLED.show();
   }
-  for (int i = led_angle; i < NUMPIXELS; i++) {
-    pixels.setPixelColor(i, pixels.Color(0, 0, 0));
 
-  }
 
-  pixel0.show();
-  pixel1.show();
-  pixel2.show();
-  pixel3.show();
-  pixel4.show();
-  pixel5.show();
+
+  //  for (int i = 0; i < led_angle; i++) {
+  //    pixels.setPixelColor(i, pixels.Color(225, 225, 10 + (i + 1) * 10));
+  //
+  //  }
+  //  for (int i = led_angle; i < NUMPIXELS; i++) {
+  //    pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+  //
+  //  }
+  //
+  //  pixel0.show();
+  //  pixel1.show();
+  //  pixel2.show();
+  //  pixel3.show();
+  //  pixel4.show();
+  //  pixel5.show();
 
 
   /**************** SEND Bluetooth messages ***************/
