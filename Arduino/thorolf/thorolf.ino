@@ -32,12 +32,12 @@ void setup()
   FastLED.addLeds<NEOPIXEL, 5>(leds, NUM_LEDS_PER_STRIP);
   FastLED.addLeds<NEOPIXEL, 6>(leds, NUM_LEDS_PER_STRIP);
   FastLED.addLeds<NEOPIXEL, 7>(leds, NUM_LEDS_PER_STRIP);
-
   // Set al LEDS green
   for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
     leds[i] = CRGB::Cyan;
   }
   FastLED.setBrightness(0);
+  
 
   Serial.begin(9600);
   BT.begin(9600);
@@ -92,7 +92,6 @@ void loop()
   }
 
 
-
   //if (led_angle[0] > 1 || led_angle[1] > 1 || led_angle[2] > 1) {
   //for (int l = 0; l < nflex; l++) {
   //int l = 2;
@@ -109,21 +108,6 @@ void loop()
   // }
 
 
-  //  for (int i = 0; i < led_angle; i++) {
-  //    pixels.setPixelColor(i, pixels.Color(225, 225, 10 + (i + 1) * 10));
-  //
-  //  }
-  //  for (int i = led_angle; i < NUMPIXELS; i++) {
-  //    pixels.setPixelColor(i, pixels.Color(0, 0, 0));
-  //
-  //  }
-  //
-  //  pixel0.show();
-  //  pixel1.show();
-  //  pixel2.show();
-  //  pixel3.show();
-  //  pixel4.show();
-  //  pixel5.show();
 
 FastLED.show();
 
@@ -157,5 +141,12 @@ FastLED.show();
 
   }
 
+}
+  /**************** EXTRA FUNCTIONS ***************/
+void addGlitter( fract8 chanceOfGlitter) 
+{
+  if( random8() < chanceOfGlitter) {
+    leds[ random16(NUM_LEDS_PER_STRIP) ] += CRGB::White;
+  }
 }
 
