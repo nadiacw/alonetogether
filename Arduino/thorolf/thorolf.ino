@@ -20,8 +20,8 @@ const float VCC = 4.98; // Measured voltage of Ardunio 5V line
 const float R_DIV = 47500.0; // Measured resistance of 3.3k resistor
 // Upload the code, then try to adjust these values to more
 // accurately calculate bend degree.
-const float STRAIGHT_RESISTANCE[] = {10348.21, 42988.83, 10348.21}; // resistance when straight
-const float BEND_RESISTANCE[] = {20461.54, 125427.05, 20461.54}; // resistance at 90 deg
+const float STRAIGHT_RESISTANCE[] = {10417.16, 32818.18, 30372.60}; // resistance when straight
+const float BEND_RESISTANCE[] = {20461.54, 86363.63, 86363.63}; // resistance at 90 deg
 
 void setup()
 {
@@ -32,6 +32,12 @@ void setup()
   FastLED.addLeds<NEOPIXEL, 5>(leds, NUM_LEDS_PER_STRIP);
   FastLED.addLeds<NEOPIXEL, 6>(leds, NUM_LEDS_PER_STRIP);
   FastLED.addLeds<NEOPIXEL, 7>(leds, NUM_LEDS_PER_STRIP);
+
+  // Set al LEDS green
+  for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
+    leds[i] = CRGB::Cyan;
+  }
+  FastLED.setBrightness(0);
 
   Serial.begin(9600);
   BT.begin(9600);
@@ -44,42 +50,63 @@ void setup()
 
 void loop()
 {
+  
   /********* Flexie loop *********/
 
   // For each flexie
   int led_angle[nflex];
+  int led_brightness[nflex];
+
   for (int i = 0; i < nflex; i++) {
 
-    Serial.println("FLEXIE #" + String(i));
+    //Serial.println("FLEXIE #" + String(i));
 
     // Read the ADC, and calculate voltage and resistance from it
     int flexADC = analogRead(flexPins[i]);
     float flexV = flexADC * VCC / 1023.0;
     float flexR = R_DIV * (VCC / flexV - 1.0);
-    //Serial.println("Resistance for flexie #: "+ String(i) + ": " + String(flexR) + " ohms");
+    //Serial.println("Resistance for flexie #" + String(i) + ": " + String(flexR) + " ohms");
 
     // Use the calculated resistance to estimate the sensor's
     // bend angle:
     float angle = map(flexR, STRAIGHT_RESISTANCE[i], BEND_RESISTANCE[i], 0, 90.0);
-    Serial.println("Bend for flexie #" + String(i) + ": " + String(angle) + " degrees");
+    //Serial.println("Bend for flexie #" + String(i) + ": " + String(angle) + " degrees");
 
+    // Map force to led number
     led_angle[i] = map(angle, 0, 90.0, 0, NUM_LEDS_PER_STRIP);
-    Serial.println(led_angle[i]);
+    //Serial.println(led_angle[i]);
+    // Map force to led brightness
+    led_brightness[i] = map(angle, 0, 90.0, 0, 164);
+    //}
+
+    /********* LED loop *********/
+
+    //for (int i = 0; i < nflex; i++) {
+    // Minimum of bending is 10.0 degrees
+    if (angle > 10.0) {
+      Serial.println("Touched on flexie #" + String(i));
+      // Now map brightness
+      Serial.println(led_brightness[i]);
+      FastLED.setBrightness(led_brightness[i]);
+    }
   }
 
-  /********* LED loop *********/
 
-  if (led_angle[0] > 1 || led_angle[1] > 1 || led_angle[2] > 1) {
-    //if (led_angle[1] > 1) {
-    for (int i = 0; i < led_angle; i++) {
-      leds[i] = CRGB::Green;
-    }
-    for (int i = led_angle; i < NUM_LEDS_PER_STRIP; i++) {
-      leds[i] = CRGB::Black;
-    }
-    FastLED.show();
-  }
 
+  //if (led_angle[0] > 1 || led_angle[1] > 1 || led_angle[2] > 1) {
+  //for (int l = 0; l < nflex; l++) {
+  //int l = 2;
+  //    if (led_angle[l] > 1) {
+  //      for (int i = 0; i < led_angle[l]; i++) {
+  //        leds[i] = CRGB::Green;
+  //      }
+  //      for (int i = led_angle[l]; i < NUM_LEDS_PER_STRIP; i++) {
+  //        leds[i] = CRGB::Black;
+  //      }
+  //      FastLED.show();
+  //    }
+
+  // }
 
 
   //  for (int i = 0; i < led_angle; i++) {
@@ -98,6 +125,7 @@ void loop()
   //  pixel4.show();
   //  pixel5.show();
 
+FastLED.show();
 
   /**************** SEND Bluetooth messages ***************/
   //  if (BT.available()) {
