@@ -1,11 +1,13 @@
-//include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h>
 #include <avr/power.h>
 #include <SoftwareSerial.h>
 
-#define PIN            3
-//define NUMPIXELS      8
+#define NUMPIXELS      1
 
-//Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, 6, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixels2 = Adafruit_NeoPixel(NUMPIXELS, 7, NEO_GRB + NEO_KHZ800);
+int delayval = 500; // delay for half a second
+
 
 
 const int FSR_PIN = A0; // Pin connected to FSR/resistor divider
@@ -31,9 +33,12 @@ void setup()
   pinMode(5, OUTPUT);
   pinMode(6, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
+  pixels.begin(); // This initializes the NeoPixel library.
+  pixels2.begin();
 }
 void loop()
 {
+
   int fsrADC = analogRead(FSR_PIN);
   // If the FSR has no pressure, the resistance will be
   // near infinite. So the voltage should be near 0.
@@ -56,25 +61,25 @@ void loop()
       force =  fsrG / 0.000000642857;
     Serial.println("Force: " + String(force) + " g");
     Serial.println();
-    setColor(255, 0, 0); // Red Color
     int test = map(force, 0, 7000, 0, 255);
     Serial.println(test);
 
+    if(test > 5) {
+      for (int i = 0; i < NUMPIXELS; i++) {
+  
+        // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
+        pixels.setPixelColor(i, pixels.Color(0, 150, 0)); // Moderately bright green color.
+        pixels2.setPixelColor(i, pixels.Color(0, 150, 0)); // Moderately bright green color.
+  
+        pixels.show(); // This sends the updated pixel color to the hardware.
+        pixels2.show();
+  
+        delay(delayval); // Delay for a period of time (in milliseconds).
+  
+      }
+    }
   }
-  else
-  {
-    setColor(0, 0, 0);
-    // No pressure detected
-  }
-  //  setColor(255, 0, 0); // Red Color
-  //  delay(1000);
-  //  setColor(0, 255, 0); // Green Color
-  //  delay(1000);
-  //  setColor(0, 0, 255); // Blue Color
-  //  delay(1000);
-  //  setColor(255, 255, 255); // White Color
-  //  delay(1000);
-  //  setColor(170, 0, 255); // Purple Color
+
   /**************** SEND Bluetooth messages ***************/
   if (BT.available()) {
     float force;
@@ -89,7 +94,7 @@ void loop()
 
     //    bytesToSend[0] = map(angle, 0, 90, 0, 255);
     bytesToSend[0] = map(force, 0, 5000, 0, 255);
-    
+
     bytesToSend[1] = 0;
 
     for (int i = 0; i < 2 ; i++) { // loops through the Bytes Array
@@ -118,9 +123,5 @@ void loop()
   }
 
 }
-void setColor(int redValue, int greenValue, int blueValue) {
-  analogWrite(3, redValue);
-  analogWrite(5, greenValue);
-  analogWrite(6, blueValue);
-}
+
 
