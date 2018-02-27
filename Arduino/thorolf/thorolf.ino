@@ -1,10 +1,16 @@
 #include <SoftwareSerial.h>
 
 #include "FastLED.h"
-#define NUM_LEDS_PER_STRIP 6
-CRGB leds[NUM_LEDS_PER_STRIP];
+#define NUM_LEDS 6
+CRGB leds[NUM_LEDS];
 
 int nstrips = 6;
+
+/********* LED modes *********/
+// Mode 0: resting / not touchable
+// Mode 1: touchable
+// Mode 2: incoming contact!
+int ledMode = 1;
 
 /********* Bluetooth settings *********/
 SoftwareSerial BT(10, 11); // Bluetooth 10 RX, 11 TX.
@@ -20,24 +26,24 @@ const float VCC = 4.98; // Measured voltage of Ardunio 5V line
 const float R_DIV = 47500.0; // Measured resistance of 3.3k resistor
 // Upload the code, then try to adjust these values to more
 // accurately calculate bend degree.
-const float STRAIGHT_RESISTANCE[] = {10417.16, 32818.18, 30372.60}; // resistance when straight
-const float BEND_RESISTANCE[] = {20461.54, 86363.63, 86363.63}; // resistance at 90 deg
+const float STRAIGHT_RESISTANCE[] = {33487.50, 10904.45, 39272.32}; // resistance when straight
+const float BEND_RESISTANCE[] = {58829.32, 30875.00, 79042.96}; // resistance at 90 deg
 
 void setup()
 {
   /********* LED settings *********/
-  FastLED.addLeds<NEOPIXEL, 2>(leds, NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, 3>(leds, NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, 4>(leds, NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, 5>(leds, NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, 6>(leds, NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, 7>(leds, NUM_LEDS_PER_STRIP);
-  // Set al LEDS green
-  for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
-    leds[i] = CRGB::Cyan;
+  FastLED.addLeds<NEOPIXEL, 2>(leds, NUM_LEDS);
+  FastLED.addLeds<NEOPIXEL, 3>(leds, NUM_LEDS);
+  FastLED.addLeds<NEOPIXEL, 4>(leds, NUM_LEDS);
+  FastLED.addLeds<NEOPIXEL, 5>(leds, NUM_LEDS);
+  FastLED.addLeds<NEOPIXEL, 6>(leds, NUM_LEDS);
+  FastLED.addLeds<NEOPIXEL, 7>(leds, NUM_LEDS);
+
+  // Set all LEDS green
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CRGB::White;
   }
-  FastLED.setBrightness(0);
-  
+  FastLED.setBrightness(10);
 
   Serial.begin(9600);
   BT.begin(9600);
@@ -50,7 +56,7 @@ void setup()
 
 void loop()
 {
-  
+
   /********* Flexie loop *********/
 
   // For each flexie
@@ -66,6 +72,7 @@ void loop()
     float flexV = flexADC * VCC / 1023.0;
     float flexR = R_DIV * (VCC / flexV - 1.0);
     //Serial.println("Resistance for flexie #" + String(i) + ": " + String(flexR) + " ohms");
+    //delay(500);
 
     // Use the calculated resistance to estimate the sensor's
     // bend angle:
@@ -73,43 +80,41 @@ void loop()
     //Serial.println("Bend for flexie #" + String(i) + ": " + String(angle) + " degrees");
 
     // Map force to led number
-    led_angle[i] = map(angle, 0, 90.0, 0, NUM_LEDS_PER_STRIP);
+    led_angle[i] = map(angle, 0, 90.0, 0, NUM_LEDS);
     //Serial.println(led_angle[i]);
     // Map force to led brightness
     led_brightness[i] = map(angle, 0, 90.0, 0, 164);
-    //}
 
-    /********* LED loop *********/
-
-    //for (int i = 0; i < nflex; i++) {
-    // Minimum of bending is 10.0 degrees
-    if (angle > 10.0) {
-      Serial.println("Touched on flexie #" + String(i));
-      // Now map brightness
-      Serial.println(led_brightness[i]);
-      FastLED.setBrightness(led_brightness[i]);
+    /********* LED loop when touched! *********/
+    if (ledMode == 1) {
+      // Minimum of bending is 10.0 degrees
+      if (angle > 5.0) {
+        Serial.println("Touched on flexie #" + String(i));
+        // Now map brightness
+        Serial.println(led_brightness[i]);
+        if (angle > 90.0) {
+          FastLED.setBrightness(164);
+        }
+        else {
+          FastLED.setBrightness(led_brightness[i]);
+        }
+      }
     }
+
   }
 
 
-  //if (led_angle[0] > 1 || led_angle[1] > 1 || led_angle[2] > 1) {
-  //for (int l = 0; l < nflex; l++) {
-  //int l = 2;
-  //    if (led_angle[l] > 1) {
-  //      for (int i = 0; i < led_angle[l]; i++) {
-  //        leds[i] = CRGB::Green;
-  //      }
-  //      for (int i = led_angle[l]; i < NUM_LEDS_PER_STRIP; i++) {
-  //        leds[i] = CRGB::Black;
-  //      }
-  //      FastLED.show();
-  //    }
+  /********* LED loop *********/
+  if (ledMode == 1) {
 
-  // }
+  }
+  else if (ledMode == 2) {
+    rainbowWithGlitter();
+  }
 
 
 
-FastLED.show();
+  FastLED.show();
 
   /**************** SEND Bluetooth messages ***************/
   //  if (BT.available()) {
@@ -131,22 +136,39 @@ FastLED.show();
     Serial.println(value);
 
     if (value == '0') {
-      digitalWrite(LED_BUILTIN, HIGH);
-      //pixels.setBrightness(255);
+      //digitalWrite(LED_BUILTIN, HIGH);
+      ledMode = 0;
+      FastLED.setBrightness(10);
     }
     if (value == '1') {
-      digitalWrite(LED_BUILTIN, LOW);
-      //pixels.setBrightness(20);
+      //digitalWrite(LED_BUILTIN, LOW);
+      ledMode = 2;
+      FastLED.setBrightness(164);
     }
 
   }
 
 }
-  /**************** EXTRA FUNCTIONS ***************/
-void addGlitter( fract8 chanceOfGlitter) 
+/**************** EXTRA FUNCTIONS ***************/
+uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+
+void rainbow()
 {
-  if( random8() < chanceOfGlitter) {
-    leds[ random16(NUM_LEDS_PER_STRIP) ] += CRGB::White;
+  // FastLED's built-in rainbow generator
+  fill_rainbow( leds, NUM_LEDS, gHue, 7);
+}
+
+void rainbowWithGlitter()
+{
+  // built-in FastLED rainbow, plus some random sparkly glitter
+  rainbow();
+  addGlitter(20);
+}
+
+void addGlitter( fract8 chanceOfGlitter)
+{
+  if ( random8() < chanceOfGlitter) {
+    leds[ random16(NUM_LEDS) ] += CRGB::White;
   }
 }
 
