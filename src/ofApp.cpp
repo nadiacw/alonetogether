@@ -14,11 +14,11 @@ void ofApp::setup(){
     for (int i = 0; i < deviceList.size(); i++) {
         // Plant 1
         if(deviceList[i].getDeviceName().find("tty.HC-06-DevB") == 0) {
-//            while(!serialList[0].setup(i, 9600))
-//            {
-//                serialList[0].setup(i, 9600);
-//                cout << "svamp connected! at serial port " << i <<endl;
-//            }
+            while(!serialList[0].setup(i, 9600))
+            {
+                serialList[0].setup(i, 9600);
+                cout << "svamp connected! at serial port " << i <<endl;
+            }
         }
         // Plant 2
         else if(deviceList[i].getDeviceName().find("tty.banana-DevB") == 0) {

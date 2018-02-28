@@ -7,14 +7,14 @@ CRGB leds[NUM_LEDS];
 int nstrips = 6;
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
-long previousMillis1 = 0;
-long previousMillis2 = 0;
+long previousMillis = 0;
 long interval = 15;
 
 int k = 5;
 int kmax = 164;
-int kmin = 10;
+int kmin = 5;
 bool fadeIn = true;
+float minA = 5.0;
 
 /********* LED modes *********/
 // Mode 0: resting
@@ -86,13 +86,18 @@ void loop()
     // Use the calculated resistance to estimate the sensor's
     // bend angle:
     angle[i] = map(flexR, STRAIGHT_RESISTANCE[i], BEND_RESISTANCE[i], 0, 90.0);
-    //Serial.println("Bend for flexie #" + String(i) + ": " + String(angle) + " degrees");
+    Serial.println("Bend for flexie #" + String(i) + ": " + String(angle[i]) + " degrees");
 
     // Map force to led number
     //led_angle[i] = map(angle, 0, 90.0, 0, NUM_LEDS);
     //Serial.println(led_angle[i]);
     // Map force to led brightness
-    led_brightness[i] = map(angle, 0, 90.0, 0, 164);
+    led_brightness[i] = map(angle[i], 0, 100.0, 0, 255);
+    Serial.println(led_brightness[i]);
+    if (ledMode == 1) {
+      // Touched
+      fill_solid(leds, NUM_LEDS, CHSV(led_brightness[i],255,255));
+    }
 
     /********* LED loop when touched! *********/
     // If breathing
@@ -113,7 +118,7 @@ void loop()
     //    }
 
   }
-  if (angle[0] > 10.0 || angle[1] > 10.0 || angle[2] > 10.0) {
+  if (angle[0] > minA || angle[1] > minA || angle[2] > minA) {
     // Touching at least one flexie
     Serial.println("Touched a flexie");
     ledMode = 1;
@@ -129,8 +134,8 @@ void loop()
     // Breathe
     fill_solid(leds, NUM_LEDS, CRGB::White);
     unsigned long currentMillis = millis();
-    if (currentMillis - previousMillis2 > interval) {
-      previousMillis2 = currentMillis;
+    if (currentMillis - previousMillis > interval) {
+      previousMillis = currentMillis;
       if (k < kmax) {
         // fade in or out
         if (fadeIn) {
@@ -154,10 +159,10 @@ void loop()
   }
   else if (ledMode == 1) {
     // Touched
-    fill_solid(leds, NUM_LEDS, CRGB::Red);
+    //fill_solid(leds, NUM_LEDS, led_brightness);
   }
   else if (ledMode == 2) {
-    rainbowWithGlitter();
+    juggle();
   }
 
 
@@ -186,12 +191,10 @@ void loop()
     if (value == '0') {
       //digitalWrite(LED_BUILTIN, HIGH);
       ledMode = 0;
-      FastLED.setBrightness(10);
     }
     if (value == '1') {
       //digitalWrite(LED_BUILTIN, LOW);
       ledMode = 2;
-      FastLED.setBrightness(164);
     }
 
   }
@@ -217,6 +220,24 @@ void addGlitter( fract8 chanceOfGlitter)
   if ( random8() < chanceOfGlitter) {
     leds[ random16(NUM_LEDS) ] += CRGB::White;
   }
+}
+
+void juggle() {
+  // eight colored dots, weaving in and out of sync with each other
+  fadeToBlackBy( leds, NUM_LEDS, 20);
+  byte dothue = 0;
+  for ( int i = 0; i < 8; i++) {
+    leds[beatsin16( i + 7, 0, NUM_LEDS - 1 )] |= CHSV(dothue, 200, 255);
+    dothue += 32;
+  }
+}
+
+void confetti()
+{
+  // random colored speckles that blink in and fade smoothly
+  fadeToBlackBy( leds, NUM_LEDS, 10);
+  int pos = random16(NUM_LEDS);
+  leds[pos] += CHSV( gHue + random8(64), 200, 255);
 }
 
 
