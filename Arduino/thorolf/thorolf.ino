@@ -5,12 +5,22 @@
 CRGB leds[NUM_LEDS];
 
 int nstrips = 6;
+uint8_t gHue = 0; // rotating "base color" used by many of the patterns
+
+long previousMillis1 = 0;
+long previousMillis2 = 0;
+long interval = 15;
+
+int k = 5;
+int kmax = 164;
+int kmin = 10;
+bool fadeIn = true;
 
 /********* LED modes *********/
-// Mode 0: resting / not touchable
+// Mode 0: resting
 // Mode 1: touchable
 // Mode 2: incoming contact!
-int ledMode = 1;
+int ledMode = 0;
 
 /********* Bluetooth settings *********/
 SoftwareSerial BT(10, 11); // Bluetooth 10 RX, 11 TX.
@@ -28,6 +38,10 @@ const float R_DIV = 47500.0; // Measured resistance of 3.3k resistor
 // accurately calculate bend degree.
 const float STRAIGHT_RESISTANCE[] = {33487.50, 10904.45, 39272.32}; // resistance when straight
 const float BEND_RESISTANCE[] = {58829.32, 30875.00, 79042.96}; // resistance at 90 deg
+
+// For each flexie
+float angle[3];
+int led_brightness[3];
 
 void setup()
 {
@@ -59,10 +73,6 @@ void loop()
 
   /********* Flexie loop *********/
 
-  // For each flexie
-  int led_angle[nflex];
-  int led_brightness[nflex];
-
   for (int i = 0; i < nflex; i++) {
 
     //Serial.println("FLEXIE #" + String(i));
@@ -72,41 +82,79 @@ void loop()
     float flexV = flexADC * VCC / 1023.0;
     float flexR = R_DIV * (VCC / flexV - 1.0);
     //Serial.println("Resistance for flexie #" + String(i) + ": " + String(flexR) + " ohms");
-    //delay(500);
 
     // Use the calculated resistance to estimate the sensor's
     // bend angle:
-    float angle = map(flexR, STRAIGHT_RESISTANCE[i], BEND_RESISTANCE[i], 0, 90.0);
+    angle[i] = map(flexR, STRAIGHT_RESISTANCE[i], BEND_RESISTANCE[i], 0, 90.0);
     //Serial.println("Bend for flexie #" + String(i) + ": " + String(angle) + " degrees");
 
     // Map force to led number
-    led_angle[i] = map(angle, 0, 90.0, 0, NUM_LEDS);
+    //led_angle[i] = map(angle, 0, 90.0, 0, NUM_LEDS);
     //Serial.println(led_angle[i]);
     // Map force to led brightness
     led_brightness[i] = map(angle, 0, 90.0, 0, 164);
 
     /********* LED loop when touched! *********/
-    if (ledMode == 1) {
-      // Minimum of bending is 10.0 degrees
-      if (angle > 5.0) {
-        Serial.println("Touched on flexie #" + String(i));
-        // Now map brightness
-        Serial.println(led_brightness[i]);
-        if (angle > 90.0) {
-          FastLED.setBrightness(164);
-        }
-        else {
-          FastLED.setBrightness(led_brightness[i]);
-        }
-      }
-    }
+    // If breathing
+    //    if (ledMode == 0) {
+    //      // Minimum of bending is 5.0 degrees
+    //      if (angle > 5.0) {
+    //        ledMode = 1; // Flexie is being touched
+    //        Serial.println("Touched on flexie #" + String(i));
+    //        // Now map brightness
+    //        Serial.println(led_brightness[i]);
+    //        if (angle > 90.0) {
+    //          FastLED.setBrightness(164);
+    //        }
+    //        else {
+    //          FastLED.setBrightness(led_brightness[i]);
+    //        }
+    //      }
+    //    }
 
+  }
+  if (angle[0] > 10.0 || angle[1] > 10.0 || angle[2] > 10.0) {
+    // Touching at least one flexie
+    Serial.println("Touched a flexie");
+    ledMode = 1;
+  }
+  else {
+    // Touching none
+    ledMode = 0;
   }
 
 
   /********* LED loop *********/
-  if (ledMode == 1) {
-
+  if (ledMode == 0) {
+    // Breathe
+    fill_solid(leds, NUM_LEDS, CRGB::White);
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis2 > interval) {
+      previousMillis2 = currentMillis;
+      if (k < kmax) {
+        // fade in or out
+        if (fadeIn) {
+          k++;
+        }
+        else {
+          k--;
+        }
+      }
+      if (k == kmax) {
+        k --;
+        fadeIn = false;
+      }
+      if (k == kmin) {
+        k ++;
+        fadeIn = true;
+      }
+    }
+    FastLED.setBrightness(k);
+    FastLED.show();
+  }
+  else if (ledMode == 1) {
+    // Touched
+    fill_solid(leds, NUM_LEDS, CRGB::Red);
   }
   else if (ledMode == 2) {
     rainbowWithGlitter();
@@ -150,7 +198,6 @@ void loop()
 
 }
 /**************** EXTRA FUNCTIONS ***************/
-uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 void rainbow()
 {
@@ -171,4 +218,5 @@ void addGlitter( fract8 chanceOfGlitter)
     leds[ random16(NUM_LEDS) ] += CRGB::White;
   }
 }
+
 
