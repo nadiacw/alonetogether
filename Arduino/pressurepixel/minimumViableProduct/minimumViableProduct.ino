@@ -1,6 +1,6 @@
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
-#include <avr/power.h>
+  #include <avr/power.h>
 #endif
 
 #define PIN0            5
@@ -15,6 +15,7 @@ int fsrPin2 = 2;
 int fsrReading0;
 int fsrReading1;
 int fsrReading2;
+<<<<<<< HEAD
 int brightness0 = 20;
 int brightness1 = 20;
 int brightness2 = 20;
@@ -32,6 +33,12 @@ Adafruit_NeoPixel pixels[] = {
   Adafruit_NeoPixel(1, PIN1, NEO_GRB + NEO_KHZ800),
   Adafruit_NeoPixel(1, PIN2, NEO_GRB + NEO_KHZ800),
 };
+=======
+
+Adafruit_NeoPixel pixel0 = Adafruit_NeoPixel(1, PIN0, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixel1 = Adafruit_NeoPixel(1, 6, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel pixel2 = Adafruit_NeoPixel(1, 7, NEO_GRB + NEO_KHZ800);
+>>>>>>> parent of 4711b32... Asynchronous MVP
 
 
 void setup(void) {
@@ -46,6 +53,7 @@ void setup(void) {
   pixels[2].setPixelColor(0, pixels[2].Color(0, 150, 0)); // Moderately bright green color.
 }
 
+<<<<<<< HEAD
 void update() {
   if (currentMillis - previousMillis >= windDown) {
     // save the last time you blinked the LED
@@ -82,20 +90,33 @@ void update() {
 void loop() {
   currentMillis = millis();
   
+=======
+void loop() {
+>>>>>>> parent of 4711b32... Asynchronous MVP
   fsrReading0 = analogRead(fsrPin0);
   fsrReading1 = analogRead(fsrPin1);
   fsrReading2 = analogRead(fsrPin2);
 
-  int map0 = map(fsrReading0, 0, 1000, 20, 255);
+  int map0 = map(fsrReading0, 0, 1000, 0, 255);
+  int map1 = map(fsrReading1, 0, 1000, 0, 255);
+  int map2 = map(fsrReading2, 0, 1000, 0, 255);
 
+<<<<<<< HEAD
   if (brightness0 > 20) {
     update();
   } else {
     brightness0 = map0;
   }
+=======
+  for(int i=0;i<NUMPIXELS;i++){
+>>>>>>> parent of 4711b32... Asynchronous MVP
 
-  int map1 = map(fsrReading1, 0, 1000, 20, 255);
+    // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255
+    pixel0.setPixelColor(i, pixel0.Color(0,150,0)); // Moderately bright green color.
+    pixel1.setPixelColor(i, pixel1.Color(0,150,0)); // Moderately bright green color.
+    pixel2.setPixelColor(i, pixel2.Color(0,150,0)); // Moderately bright green color.
 
+<<<<<<< HEAD
   if (brightness1 > 20) {
     update();
   } else {
@@ -110,4 +131,17 @@ void loop() {
     brightness2 = map2;
   }
 
+=======
+    pixel0.setBrightness(map0);
+    pixel1.setBrightness(map1);
+    pixel2.setBrightness(map2);
+
+    pixel0.show(); // This sends the updated pixel color to the hardware.
+    pixel1.show();
+    pixel2.show();
+
+  
+  delay(300);
+  }
+>>>>>>> parent of 4711b32... Asynchronous MVP
 }
