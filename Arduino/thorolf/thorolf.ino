@@ -14,7 +14,7 @@ int k = 5;
 int kmax = 164;
 int kmin = 5;
 bool fadeIn = true;
-float minA = 5.0;
+float minA = 10.0;
 
 /********* LED modes *********/
 // Mode 0: resting
@@ -86,18 +86,18 @@ void loop()
     // Use the calculated resistance to estimate the sensor's
     // bend angle:
     angle[i] = map(flexR, STRAIGHT_RESISTANCE[i], BEND_RESISTANCE[i], 0, 90.0);
-    Serial.println("Bend for flexie #" + String(i) + ": " + String(angle[i]) + " degrees");
+    //Serial.println("Bend for flexie #" + String(i) + ": " + String(angle[i]) + " degrees");
 
     // Map force to led number
     //led_angle[i] = map(angle, 0, 90.0, 0, NUM_LEDS);
     //Serial.println(led_angle[i]);
     // Map force to led brightness
     led_brightness[i] = map(angle[i], 0, 100.0, 0, 255);
-    Serial.println(led_brightness[i]);
-    if (ledMode == 1) {
+    //Serial.println(led_brightness[i]);
+    //if (ledMode == 1) {
       // Touched
-      fill_solid(leds, NUM_LEDS, CHSV(led_brightness[i],255,255));
-    }
+      //fill_solid(leds, NUM_LEDS, CHSV(led_brightness[i],255,255));
+    //}
 
     /********* LED loop when touched! *********/
     // If breathing
@@ -120,7 +120,7 @@ void loop()
   }
   if (angle[0] > minA || angle[1] > minA || angle[2] > minA) {
     // Touching at least one flexie
-    Serial.println("Touched a flexie");
+    //Serial.println("Touched a flexie");
     ledMode = 1;
   }
   else {
@@ -135,6 +135,7 @@ void loop()
     fill_solid(leds, NUM_LEDS, CRGB::White);
     unsigned long currentMillis = millis();
     if (currentMillis - previousMillis > interval) {
+      Serial.println(k);
       previousMillis = currentMillis;
       if (k < kmax) {
         // fade in or out
@@ -146,11 +147,11 @@ void loop()
         }
       }
       if (k == kmax) {
-        k --;
+        k--;
         fadeIn = false;
       }
       if (k == kmin) {
-        k ++;
+        k++;
         fadeIn = true;
       }
     }
@@ -159,7 +160,7 @@ void loop()
   }
   else if (ledMode == 1) {
     // Touched
-    //fill_solid(leds, NUM_LEDS, led_brightness);
+    fill_solid(leds, NUM_LEDS, CRGB::Red);
   }
   else if (ledMode == 2) {
     juggle();
