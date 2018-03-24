@@ -14,7 +14,8 @@ int k = 5;
 int kmax = 164;
 int kmin = 5;
 bool fadeIn = true;
-float minA = 5.0;
+float minA = 15.0;
+int blue = 0;
 
 /********* LED modes *********/
 // Mode 0: resting
@@ -70,7 +71,8 @@ void setup()
 
 void loop()
 {
-
+// do some periodic updates
+  EVERY_N_MILLISECONDS( 20 ) { gHue++; }
   /********* Flexie loop *********/
 
   for (int i = 0; i < nflex; i++) {
@@ -86,17 +88,18 @@ void loop()
     // Use the calculated resistance to estimate the sensor's
     // bend angle:
     angle[i] = map(flexR, STRAIGHT_RESISTANCE[i], BEND_RESISTANCE[i], 0, 90.0);
-    Serial.println("Bend for flexie #" + String(i) + ": " + String(angle[i]) + " degrees");
+    //Serial.println("Bend for flexie #" + String(i) + ": " + String(angle[i]) + " degrees");
 
     // Map force to led number
     //led_angle[i] = map(angle, 0, 90.0, 0, NUM_LEDS);
     //Serial.println(led_angle[i]);
     // Map force to led brightness
-    led_brightness[i] = map(angle[i], 0, 100.0, 0, 255);
-    Serial.println(led_brightness[i]);
+    led_brightness[i] = map(angle[i], 0, 200.0, 0, 255);
+    //Serial.println(led_brightness[i]);
     if (ledMode == 1) {
-      // Touched
-      fill_solid(leds, NUM_LEDS, CHSV(led_brightness[i],255,255));
+    // Touched
+    //fill_solid(leds, NUM_LEDS, CHSV(led_brightness[i],255,255));
+      blue = led_brightness[i];
     }
 
     /********* LED loop when touched! *********/
@@ -120,12 +123,14 @@ void loop()
   }
   if (angle[0] > minA || angle[1] > minA || angle[2] > minA) {
     // Touching at least one flexie
-    Serial.println("Touched a flexie");
+    //Serial.println("Touched a flexie");
     ledMode = 1;
   }
   else {
     // Touching none
-    ledMode = 0;
+    if (ledMode == 1) {
+      ledMode = 0;
+    }
   }
 
 
@@ -146,11 +151,11 @@ void loop()
         }
       }
       if (k == kmax) {
-        k --;
+        k--;
         fadeIn = false;
       }
       if (k == kmin) {
-        k ++;
+        k++;
         fadeIn = true;
       }
     }
@@ -159,10 +164,13 @@ void loop()
   }
   else if (ledMode == 1) {
     // Touched
-    //fill_solid(leds, NUM_LEDS, led_brightness);
+    //fill_solid(leds, NUM_LEDS, CRGB::Red);
+    //sinelon();
+    customrainbow();
   }
   else if (ledMode == 2) {
-    juggle();
+   // bpm();
+   sinelon();
   }
 
 
@@ -240,4 +248,27 @@ void confetti()
   leds[pos] += CHSV( gHue + random8(64), 200, 255);
 }
 
+void sinelon()
+{
+  // a colored dot sweeping back and forth, with fading trails
+  fadeToBlackBy(leds, NUM_LEDS, 20);
+  int pos = beatsin16(50, 0, NUM_LEDS - 1 );
+  leds[pos] += CRGB::Blue;
+}
+void bpm()
+{
+  // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
+  uint8_t BeatsPerMinute = 60;
+  CRGBPalette16 palette = PartyColors_p;
+  uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
+  for( int i = 0; i < NUM_LEDS; i++) { //9948
+    leds[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
+  }
+}
+
+void customrainbow()
+{
+  Serial.println(blue);
+  fill_solid(leds, NUM_LEDS, CHSV(140+(0.1*blue),255,255));
+}
 
