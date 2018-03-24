@@ -25,7 +25,7 @@ int ledMode = 0;
 
 /********* Bluetooth settings *********/
 SoftwareSerial BT(10, 11); // Bluetooth 10 RX, 11 TX.
-int bytesToSend[2]; //Array that hold the values you will be sending to OF
+int byteToSend; //Array that hold the values you will be sending to OF
 
 /********* Flexie settings *********/
 //const int FLEX_PIN = A5; // Pin connected to voltage divider output
@@ -71,8 +71,10 @@ void setup()
 
 void loop()
 {
-// do some periodic updates
-  EVERY_N_MILLISECONDS( 20 ) { gHue++; }
+  // do some periodic updates
+  EVERY_N_MILLISECONDS( 20 ) {
+    gHue++;
+  }
   /********* Flexie loop *********/
 
   for (int i = 0; i < nflex; i++) {
@@ -97,8 +99,8 @@ void loop()
     led_brightness[i] = map(angle[i], 0, 200.0, 0, 255);
     //Serial.println(led_brightness[i]);
     if (ledMode == 1) {
-    // Touched
-    //fill_solid(leds, NUM_LEDS, CHSV(led_brightness[i],255,255));
+      // Touched
+      //fill_solid(leds, NUM_LEDS, CHSV(led_brightness[i],255,255));
       blue = led_brightness[i];
     }
 
@@ -169,8 +171,8 @@ void loop()
     customrainbow();
   }
   else if (ledMode == 2) {
-   // bpm();
-   sinelon();
+    // bpm();
+    sinelon();
   }
 
 
@@ -178,17 +180,22 @@ void loop()
   FastLED.show();
 
   /**************** SEND Bluetooth messages ***************/
-  //  if (BT.available()) {
-  //
-  //    bytesToSend[0] = map(angle, 0, 90, 0, 255);
-  //    bytesToSend[1] = 0;
-  //
-  //    for (int i = 0; i < 2 ; i++) { // loops through the Bytes Array
-  //      BT.write(bytesToSend[i]); // When using Serial Write you are sending the Info as a Byte which is needed to send info to OF
-  //      // This means this info won't appear in your arduino serial viewer
-  //    }
-  //
-  //  }
+  if (BT.available()) {
+      byteToSend = ledMode;
+      // Plant has been touched, so send a message
+      BT.write(byteToSend);
+      
+      
+
+    // Values to send must be mapped from 0 to 255 (byte)
+    //byteToSend = ledMode;
+
+    //for (int i = 0; i < 2 ; i++) { // loops through the Bytes Array
+      //BT.write(byteToSend); // When using Serial Write you are sending the Info as a Byte which is needed to send info to OF
+      // This means this info won't appear in your arduino serial viewer
+    //}
+
+  }
   /**************** READ Bluetooth messages ***************/
   if (BT.available()) {
 
@@ -261,14 +268,14 @@ void bpm()
   uint8_t BeatsPerMinute = 60;
   CRGBPalette16 palette = PartyColors_p;
   uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-  for( int i = 0; i < NUM_LEDS; i++) { //9948
-    leds[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
+  for ( int i = 0; i < NUM_LEDS; i++) { //9948
+    leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
   }
 }
 
 void customrainbow()
 {
-  Serial.println(blue);
-  fill_solid(leds, NUM_LEDS, CHSV(140+(0.1*blue),255,255));
+  //Serial.println(blue);
+  fill_solid(leds, NUM_LEDS, CHSV(140 + (0.1 * blue), 255, 255));
 }
 

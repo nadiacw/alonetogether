@@ -111,11 +111,11 @@ void loop()
     char value = BT.read();
     Serial.println(value);
 
-    if (value == '0') {
+    if (value == '1') {
       digitalWrite(LED_BUILTIN, HIGH);
       //setColor(255, 0, 0); // Red Color;
     }
-    if (value == '1') {
+    if (value == '0') {
       digitalWrite(LED_BUILTIN, LOW);
       //setColor(0, 0, 0);
     }
