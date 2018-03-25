@@ -12,12 +12,14 @@ SoftwareSerial BT(10, 11); // Bluetooth 10 RX, 11 TX.
 
 unsigned long previousMillisRead = 0;
 unsigned long previousMillisUpdate = 0;
+unsigned long previousBluetooth = 0;
 
 //Frequencies (in ms) for:
 //1. reading new events (BT or FSR is touched)
 //2. speed of "animations"
 unsigned long readingFrequency = 1000;
 unsigned long updateFrequency = 20;
+unsigned long bluetoothFrequency = 500;
 
 /********* ANALOG READ TO BRIGHTNESS VALUE SETUP *********/
 int fsrPin0 = 0;
@@ -68,17 +70,18 @@ void bluetoothSend(char bo) {
 void loop() {
   unsigned long currentReadingMillis = millis();
   unsigned long currentUpdateMillis = millis();
+  unsigned long currentBluetoothMillis = millis();
   fsrReading0 = analogRead(fsrPin0);
   fsrReading1 = analogRead(fsrPin1);
 
   bluetoothRead();
   
-  if((fsrReading0 > 10) || (fsrReading1 > 10)) {
+  if((fsrReading0 > 100) || (fsrReading1 > 100)) {
     bluetoothSend(1);
   } else {
     bluetoothSend(0);
   }
-  
+
 
   /* GET NEW BRIGHTNESS AND SET BRIGHTNESS ACCORDING TO UPDATE-PERIOD */
   if (currentUpdateMillis - previousMillisUpdate >= updateFrequency) {
@@ -98,11 +101,16 @@ void loop() {
 
     if (btMessage == true) {
       btMessage = false;
-      setBrightness(1, 700);
+     
+        if (currentBluetoothMillis - previousBluetooth >= bluetoothFrequency) {
+          leds[0] = CHSV(random8(),255,255);
+        } else {
+          leds[0] = CRGB::Blue;
+        }
+        previousBluetooth = currentBluetoothMillis;
     } else {
 
       if (fsrReading0 > 10) {
-        Serial.println(fsrReading0);
         setBrightness(0, fsrReading0);
       } 
 
