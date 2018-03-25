@@ -35,6 +35,8 @@ void ofApp::setup(){
             serialList[i].flush();
         }
         plantsConnected = true;
+        serialList[0].writeByte('0');
+        serialList[1].writeByte('0');
     }
     //END SERIAL
     
@@ -47,30 +49,47 @@ void ofApp::update(){
     
     if(plantsConnected){
         
+        ////////////////////////////////////////////////////////////
+        
         // Plant 1
          if(serialList[0].available() >= NUM_MSG_BYTES){
                  int val = serialList[0].readByte();
-                 byteReceived = val;
+                 byteReceived0 = val;
          }
-        
-//        if(byteReceived == 1){
-//            cout << "plant 1 touched!" << endl;
-//        }
-//        cout << "message from plant 1: " << byteReceived << endl;
-//        cout << "------------------------" << endl;
-        
-        serialList[0].writeByte('0');
-        if(byteReceived == 1){
+        // cout << "thorolf says " << byteReceived0 << endl;
+        //serialList[0].writeByte('0');
+        if(byteReceived0 == 1){
             cout << "thorolf touched!" << endl;
             // Plant touched! Send message to other plant!
             serialList[1].writeByte('1');
+            
+            serialList[0].writeByte('0');
         }
         else {
             serialList[1].writeByte('0');
         }
-        
-//
         serialList[0].flush();
+        
+        ////////////////////////////////////////////////////////////
+        
+        // Plant 2
+        if(serialList[1].available() >= NUM_MSG_BYTES){
+            int val = serialList[1].readByte();
+            byteReceived1 = val;
+        }
+         cout << "svamp says " << byteReceived1 << endl;
+        //serialList[1].writeByte('0');
+        if(byteReceived1 == 1){
+            cout << "svamp touched!" << endl;
+            // Plant touched! Send message to other plant!
+            serialList[0].writeByte('1');
+            
+            serialList[1].writeByte('0');
+        }
+        else {
+            serialList[0].writeByte('0');
+        }
+        serialList[1].flush();
 
 //    // FOR EACH PLANT
 //    for (int i=0; i<2; i++) {

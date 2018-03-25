@@ -33,7 +33,8 @@ class ofApp : public ofBaseApp{
     //set this array's length to the number of msg
     //bytes we are expecting to receive
     //int bytesReceived[NUM_MSG_BYTES];
-    int byteReceived;
+    int byteReceived0;
+    int byteReceived1;
     
     //we'll use this to count how many msgs have been received so far
     //(for debugging)

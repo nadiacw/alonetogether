@@ -8,6 +8,7 @@ int nstrips = 6;
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 long previousMillis = 0;
+long previousMillis1 = 0;
 long interval = 15;
 
 int k = 5;
@@ -173,6 +174,11 @@ void loop()
   else if (ledMode == 2) {
     // bpm();
     sinelon();
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis1 > 5000) {
+      previousMillis1 = currentMillis;
+      ledMode = 0;
+    }
   }
 
 
@@ -204,11 +210,11 @@ void loop()
     Serial.println(value);
 
     if (value == '0') {
-      //digitalWrite(LED_BUILTIN, HIGH);
-      ledMode = 0;
+      digitalWrite(LED_BUILTIN, LOW);
+      //ledMode = 0;
     }
     if (value == '1') {
-      //digitalWrite(LED_BUILTIN, LOW);
+      digitalWrite(LED_BUILTIN, HIGH);
       ledMode = 2;
     }
 
