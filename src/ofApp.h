@@ -5,7 +5,7 @@
 //this variable is how many mesages you are sending from Arduino
 //In this case we are sending the photosensor value and the second value is zero
 //this number should corrolate with your "bytesToSend" Array in your Ardunio Sketch
-#define NUM_MSG_BYTES 2
+#define NUM_MSG_BYTES 1
 
 class ofApp : public ofBaseApp{
 
@@ -32,11 +32,14 @@ class ofApp : public ofBaseApp{
     
     //set this array's length to the number of msg
     //bytes we are expecting to receive
-    int bytesReceived[NUM_MSG_BYTES];
+    //int bytesReceived[NUM_MSG_BYTES];
+    int byteReceived;
     
     //we'll use this to count how many msgs have been received so far
     //(for debugging)
     long numMsgRecvd;
     //SERIAL END
+    
+    bool plantsConnected = false;
 		
 };
