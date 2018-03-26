@@ -41,7 +41,7 @@ void loop() {
   fsrReading1 = analogRead(fsrPin1);
   fsrReading2 = analogRead(fsrPin2);
 
-  int map0 = map(fsrReading0, 0, 10, 0, 255);
+  int map0 = map(fsrReading0, 0, 300, 0, 255);
   int map1 = map(fsrReading1, 0, 300, 0, 255);
   int map2 = map(fsrReading2, 0, 300, 0, 255);
 
