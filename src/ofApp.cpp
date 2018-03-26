@@ -63,7 +63,7 @@ void ofApp::update(){
             // Plant touched! Send message to other plant!
             serialList[1].writeByte('1');
             
-            serialList[0].writeByte('0');
+           // serialList[0].writeByte('0');
         }
         else {
             serialList[1].writeByte('0');
@@ -84,7 +84,7 @@ void ofApp::update(){
             // Plant touched! Send message to other plant!
             serialList[0].writeByte('1');
             
-            serialList[1].writeByte('0');
+           // serialList[1].writeByte('0');
         }
         else {
             serialList[0].writeByte('0');
