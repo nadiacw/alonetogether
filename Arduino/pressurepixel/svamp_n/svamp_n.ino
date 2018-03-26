@@ -4,9 +4,9 @@
 #include <avr/power.h>
 #endif
 
-#define PIN0            5
-#define PIN1            6
-#define PIN2            7
+#define PIN0            7
+#define PIN1            5
+#define PIN2            6
 
 #define NUMPIXELS      1
 
@@ -25,6 +25,7 @@ SoftwareSerial BT(10, 11); // Bluetooth 10 RX, 11 TX.
 int byteToSend;
 
 int ledMode = 0;
+int isTouched = 0;
 
 void setup(void) {
   BT.begin(9600);
@@ -40,9 +41,16 @@ void loop() {
   fsrReading1 = analogRead(fsrPin1);
   fsrReading2 = analogRead(fsrPin2);
 
-  int map0 = map(fsrReading0, 0, 1000, 0, 255);
-  int map1 = map(fsrReading1, 0, 1000, 0, 255);
-  int map2 = map(fsrReading2, 0, 1000, 0, 255);
+  int map0 = map(fsrReading0, 0, 10, 0, 255);
+  int map1 = map(fsrReading1, 0, 300, 0, 255);
+  int map2 = map(fsrReading2, 0, 300, 0, 255);
+
+  if((fsrReading0 > 50) || (fsrReading1 > 50) || (fsrReading2 > 50)) {
+    isTouched = 1;
+  } else {
+    isTouched = 0;
+  }
+
 
   if (ledMode == 0) {
 
@@ -83,7 +91,7 @@ void loop() {
 
   /**************** SEND Bluetooth messages ***************/
   if (BT.available()) {
-      byteToSend = ledMode;
+      byteToSend = isTouched;
       BT.write(byteToSend);
   }
   /**************** READ Bluetooth messages ***************/

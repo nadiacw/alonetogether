@@ -23,6 +23,7 @@ int blue = 0;
 // Mode 1: touchable
 // Mode 2: incoming contact!
 int ledMode = 0;
+int isTouched = 0;
 
 /********* Bluetooth settings *********/
 SoftwareSerial BT(10, 11); // Bluetooth 10 RX, 11 TX.
@@ -38,7 +39,7 @@ const float VCC = 4.98; // Measured voltage of Ardunio 5V line
 const float R_DIV = 47500.0; // Measured resistance of 3.3k resistor
 // Upload the code, then try to adjust these values to more
 // accurately calculate bend degree.
-const float STRAIGHT_RESISTANCE[] = {33487.50, 10904.45, 39272.32}; // resistance when straight
+const float STRAIGHT_RESISTANCE[] = {36135.97, 11831.50, 49685.00}; // resistance when straight
 const float BEND_RESISTANCE[] = {58829.32, 30875.00, 79042.96}; // resistance at 90 deg
 
 // For each flexie

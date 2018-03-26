@@ -24,17 +24,17 @@ unsigned long bluetoothFrequency = 500;
 /********* ANALOG READ TO BRIGHTNESS VALUE SETUP *********/
 int fsrPin0 = 0;
 int fsrPin1 = 1;
-//int fsrPin2 = 2;
+int fsrPin2 = 2;
 int fsrReading0;
 int fsrReading1;
-//int fsrReading2;
+int fsrReading2;
 
 void setup(void) {
   BT.begin(9600);
   Serial.begin(9600);
   FastLED.addLeds<NEOPIXEL, 5>(leds, NUM_LEDS);
   FastLED.addLeds<NEOPIXEL, 6>(leds, NUM_LEDS);
-  //FastLED.addLeds<NEOPIXEL, 4>(leds, NUM_LEDS);
+  FastLED.addLeds<NEOPIXEL, 7>(leds, NUM_LEDS);
 
   // Set all LEDS green
   for (int i = 0; i < NUM_LEDS; i++) {
@@ -73,10 +73,11 @@ void loop() {
   unsigned long currentBluetoothMillis = millis();
   fsrReading0 = analogRead(fsrPin0);
   fsrReading1 = analogRead(fsrPin1);
+  fsrReading2 = analogRead(fsrPin2);
 
   bluetoothRead();
   
-  if((fsrReading0 > 100) || (fsrReading1 > 100)) {
+  if((fsrReading0 > 100) || (fsrReading1 > 100) || (fsrReading2 > 100)) {
     bluetoothSend(1);
   } else {
     bluetoothSend(0);
@@ -98,6 +99,7 @@ void loop() {
   if (currentReadingMillis - previousMillisRead >= readingFrequency) {
     fsrReading0 = analogRead(fsrPin0);
     fsrReading1 = analogRead(fsrPin1);
+    fsrReading2 = analogRead(fsrPin2);
 
     if (btMessage == true) {
       btMessage = false;
@@ -116,6 +118,10 @@ void loop() {
 
       if (fsrReading1 > 10) {
         setBrightness(0, fsrReading1);
+      } 
+
+      if (fsrReading2 > 10) {
+        setBrightness(0, fsrReading2);
       } 
     }
     previousMillisRead = currentReadingMillis;

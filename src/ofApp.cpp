@@ -77,7 +77,7 @@ void ofApp::update(){
             int val = serialList[1].readByte();
             byteReceived1 = val;
         }
-         cout << "svamp says " << byteReceived1 << endl;
+        // cout << "svamp says " << byteReceived1 << endl;
         //serialList[1].writeByte('0');
         if(byteReceived1 == 1){
             cout << "svamp touched!" << endl;
